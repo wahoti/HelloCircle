@@ -1,0 +1,63 @@
+<html>
+<head>
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="style.css"> 
+	<script src="js/socket-io.js"></script>
+	<script src="js/keys.js"></script>
+	<script src="http://code.jquery.com/jquery-1.11.1.js"></script>	
+	<title>G</title>
+</head>
+<body onunload="disconnect()">
+	<h1 id="title"></h1>
+	<canvas id="field" width="1000" height="1000" ></canvas>
+	<script>
+		var canvas = document.getElementById("field")
+		var ctx = canvas.getContext("2d")
+		var socket = io()
+		var id = "unknown"
+		var xy = [0,0]
+		
+		socket.on("init", function(_id){
+			id = _id
+		})
+		
+		socket.on('draw', function(things){
+			ctx.clearRect(0, 0, 1000, 1000)
+			for(var x in things){	
+				if(x == id){
+					xy[0] = things[x].x
+					xy[1] = things[x].y
+					ctx.beginPath()
+					ctx.arc(500, 500, things[x].size, 0, 2*Math.PI)
+					ctx.fillStyle = things[x].color
+					ctx.fill()					
+					ctx.stroke()
+					continue
+				}	
+				if(things[x].x <= xy[0] + 500 && things[x].x >= xy[0] - 500 && things[x].y <= xy[1] + 500 && things[x].y >= xy[1] - 500){
+					//var _x = 500 - (xy[0] - things[x].x)
+					//var _y = 500 - (xy[1] - things[x].y)				
+					ctx.beginPath()
+					ctx.arc(500 - (xy[0] - things[x].x), 500 - (xy[1] - things[x].y), things[x].size, 0, 2*Math.PI)
+					ctx.fillStyle = things[x].color
+					ctx.fill()					
+					ctx.stroke()
+				}
+			}
+		})
+		
+		//keys//////////////////////////////////////////////
+		document.addEventListener("keydown", keydown, false)
+		document.addEventListener("keyup", keyup, false)
+		document.addEventListener("keydown", function(){
+			socket.emit('keys', up, left, right)
+		}, false)
+		document.addEventListener("keyup", function(){
+			socket.emit('keys', up, left, right)
+		}, false)
+		////////////////////////////////////////////////////	
+			
+	</script>
+
+</body>
+</html>
