@@ -1,13 +1,36 @@
 var victor = require('victor')
 
+var swords = require('./js/swords.js')
 
-var a = new victor(1,1)
-a.normalize()
-console.log(a.magnitude())
+person = {}
+person.id = 'a'
 
-a.x = a.x*10
-a.y = a.y*10
-console.log(a.magnitude())
+swords.sword(person)
+
+console.log(person)
+
+// person.sword = swords['sword']
+
+// console.log(person)
+
+// person2 = {}
+
+// person2.sword = swords['sword']
+
+// console.log(person2)
+
+//console.log(swords['sword'].name)
+
+// var victor = require('victor')
+
+
+// var a = new victor(1,1)
+// a.normalize()
+// console.log(a.magnitude())
+
+// a.x = a.x*10
+// a.y = a.y*10
+// console.log(a.magnitude())
 
 
 // var SAT = require('SAT')

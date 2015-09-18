@@ -1,10 +1,26 @@
 //ABDULWAHED WAHEDI
 
+//gamepad api
+//audio api
+
 //todo
 //wandering bosses
 //ship designs
 //optimize network traffic - only send particles close to player on server side
 //weapons
+
+//CHANGES MADE TODAY
+//mine weapon
+//random weapon on power up
+//index page shows current weapon
+//reverse thrust
+//
+
+//THOUGHTS
+//I dont really like the movement scheme - for now it works need to test to see if it will hold up
+
+//IDEAS
+//make your characters look reflect the current weapon
 
 {//variables
 var victor = require('victor')
@@ -23,7 +39,9 @@ var height = 3000
 var SPEEDLIMIT = 5
 var FRICTION = -.1	
 	
-space_dust()	
+//init	
+space_dust()
+deathstart()	
 	
 app.set('port', process.env.PORT || 3000)
 app.get('/', function(req, res){ res.sendFile(__dirname + '/index.html') })
@@ -46,6 +64,23 @@ http.listen(app.get('port'), function(){ console.log('listening on ' + app.get('
 		circle.v.y = randy			
 		draw[circle.id].x = randx
 		draw[circle.id].y = randy		
+	}
+	function deathstart(){
+		//deathstar = {}
+		//deathstar.health = 9000
+		//deathstar.health = 9000
+		//deathstar.size = 200
+		//deathstar.id = 'DEATHSTAR'
+		deathstar_draw = {}
+		deathstar_draw.color = "#555555"
+		deathstar_draw.x = Math.floor(Math.random() * width)
+		deathstar_draw.y = Math.floor(Math.random() * height)
+		deathstar_draw.size = 200
+		draw['DEATHSTAR'] = deathstar_draw
+		
+		//things['DEATHSTAR'] = deathstar
+		
+		
 	}
 	function space_dust(){
 		var dust_count = 0
@@ -92,12 +127,12 @@ http.listen(app.get('port'), function(){ console.log('listening on ' + app.get('
 		}
 		
 		var power_up_count = 0
-		while(power_up_count < 10){
+		while(power_up_count < 5){
 			power_up_count++
 			draw['power_up-' + power_up_count] = {}			
 			draw['power_up-' + power_up_count].x = Math.round(Math.random()*(width-20)) + 10
 			draw['power_up-' + power_up_count].y = Math.round(Math.random()*(height-20)) + 10
-			draw['power_up-' + power_up_count].size = 20			
+			draw['power_up-' + power_up_count].size = 40			
 			draw['power_up-' + power_up_count].color = "#9933FF"	
 			circles['power_up-' + power_up_count] = {}
 			circles['power_up-' + power_up_count].id = 'power_up-' + power_up_count
@@ -107,7 +142,7 @@ http.listen(app.get('port'), function(){ console.log('listening on ' + app.get('
 			circles['power_up-' + power_up_count].v.y = draw['power_up-' + power_up_count].y
 			circles['power_up-' + power_up_count]._v.x = draw['power_up-' + power_up_count].x
 			circles['power_up-' + power_up_count]._v.y = draw['power_up-' + power_up_count].y		
-			circles['power_up-' + power_up_count].size = 20			
+			circles['power_up-' + power_up_count].size = 40			
 			circles['power_up-' + power_up_count].color = "#9933FF"				
 			circles['power_up-' + power_up_count].collide = function(circle){}						
 			circles['power_up-' + power_up_count].step = function(){}						
@@ -132,6 +167,10 @@ http.listen(app.get('port'), function(){ console.log('listening on ' + app.get('
 			var c = Math.sqrt(a + b)
 			if(c < (circle.size + circles[x].size)){
 				circle.collide(circles[x])
+				// if(circles[x].stationary == true){
+					// console.log('stationary hit')
+					// circles[x].collide(circle)
+				// }
 				return true
 			}
 		}
@@ -175,7 +214,12 @@ http.listen(app.get('port'), function(){ console.log('listening on ' + app.get('
 	}
 	function gameover(person){
 		person.isdead = true	
-		
+		person.speed.x = 0
+		person.speed.y = 0
+		person.up    = false
+		person.down  = false
+		person.left  = false
+		person.right = false
 		var name = person.id + '-tombstone'
 		draw[name] = {}
 		draw[name].size = person.size
@@ -192,7 +236,7 @@ http.listen(app.get('port'), function(){ console.log('listening on ' + app.get('
 	var update_interval = setInterval(function(){
 		for(var x in circles){ circles[x].step() }
 		for(var x in people){ people[x].step() }
-	}, 8)
+	}, 16)
 	var draw_interval = setInterval(function(){	
 		io.sockets.emit('draw', draw) 
 	}, 16)
@@ -214,7 +258,7 @@ actions = {
 			circles[name] = {}
 			draw[name] = {}
 			circles[name].id = name
-			circles[name].speed = 10
+			circles[name].speed = 40
 			circles[name].name = 'pewpew'
 			draw[name].color = "#FF0000"
 			circles[name].size = 8
@@ -269,24 +313,27 @@ actions = {
 			}			
 		}
 	},
-	explode: object = {
-		cost: 1,
+	mine: object = {
+		cost: 2,
 		go: function(player){
 			var name = player.id + '-' + count
 			count++
 			circles[name] = {}
 			draw[name] = {}
 			circles[name].id = name
-			circles[name].speed = 4
-			circles[name].name = 'explode'
+			circles[name].speed = 0
+			circles[name].name = 'mine'
 			draw[name].color = "#00FFFF"
-			circles[name].size = 8
-			draw[name].size = 8
+			circles[name].size = 16
+			draw[name].size = 16
+			spacing = 30
 			var direction = new victor(player.direction.x, player.direction.y)
+			direction.multiply(reverse)
 			circles[name].direction = direction
 			circles[name].destroy_on_wall = true
-			circles[name].v = new victor(player.v.x + (20*direction.x), player.v.y + (20*direction.y))
-			circles[name]._v = new victor(player.v.x + (20*direction.x), player.v.y + (20*direction.y))
+			circles[name].stationary = true
+			circles[name].v = new victor(player.v.x + (spacing*direction.x), player.v.y + (spacing*direction.y))
+			circles[name]._v = new victor(player.v.x + (spacing*direction.x), player.v.y + (spacing*direction.y))
 			
 			circles[name].end = function(){
 				delete draw[this.id]
@@ -295,6 +342,7 @@ actions = {
 			}			
 			
 			circles[name].collide = function(thing){
+				//console.log('mine collide')
 				if(thing.block){
 					delete things_draw[this.id]
 					delete things[this.id]
@@ -347,14 +395,21 @@ io.on('connection', function(client){
 	P.up = false
 	P.left = false
 	P.right = false
+	P.down = false
 	P.action = actions['pewpew']
 	P.collide = function(circle){
 		if(circle.isPowerUp){
-			for(var x in actions){
-				console.log(x + ' ' + actions[x])
-			}
-			P.action = actions['explode']
 			teleport(circle)
+			while(true){
+				var rnum = Math.round(Math.random()*(Object.keys(actions).length - 1))
+				//console.log(rnum)
+				var choice = Object.keys(actions)[rnum]
+				if(actions[choice] != P.action){
+					P.action = actions[choice]
+					client.emit('action_change',choice)
+					return
+				}
+			}
 		}
 	}
 	P.direction = new victor(.71,.71)
@@ -403,6 +458,13 @@ io.on('connection', function(client){
 			this.accel.x = (this.direction.x * this.thrust)
 			this.accel.y = (this.direction.y * this.thrust)
 		}
+		else if(this.down){//REVERSE
+			this.accel.x = (this.direction.x * this.thrust)
+			this.accel.y = (this.direction.y * this.thrust)
+			this.accel.x = this.accel.x * -1
+			this.accel.y = this.accel.y * -1
+		}
+		
 		else{//engine off = slowing down/drifting
 			//set accel to friction
 			this.accel.y = FRICTION
@@ -480,11 +542,12 @@ io.on('connection', function(client){
 		delete people[client.id]
 	})
 	
-	client.on('keys', function(up, left, right){
+	client.on('keys', function(up, left, right, down){
 		if(people[client.id].isdead){ return }		
 		people[client.id].up = up
 		people[client.id].left = left
 		people[client.id].right = right
+		people[client.id].down = down
 	})
 	
 	client.on('action', function(){

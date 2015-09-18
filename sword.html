@@ -20,9 +20,7 @@
 		var height = 1000
 		width = 2000
 		
-		socket.on("init", function(_id){
-			id = _id
-		})
+		socket.on("init", function(_id){ id = _id })
 		
 		socket.on('draw', function(things){
 			ctx.clearRect(0, 0, width, height)
@@ -37,9 +35,7 @@
 					ctx.stroke()
 					continue
 				}	
-				if(things[x].x - things[x].size <= xy[0] + width/2 && things[x].x + things[x].size >= xy[0] - width/2 && things[x].y - things[x].size <= xy[1] + height/2 && things[x].y + things[x].size >= xy[1] - height/2){
-					//var _x = 500 - (xy[0] - things[x].x)
-					//var _y = 500 - (xy[1] - things[x].y)				
+				if(things[x].x - things[x].size <= xy[0] + width/2 && things[x].x + things[x].size >= xy[0] - width/2 && things[x].y - things[x].size <= xy[1] + height/2 && things[x].y + things[x].size >= xy[1] - height/2){			
 					ctx.beginPath()
 					ctx.arc(width/2 - (xy[0] - things[x].x), height/2 - (xy[1] - things[x].y), things[x].size, 0, 2*Math.PI)
 					ctx.fillStyle = things[x].color
@@ -57,10 +53,10 @@
 		document.addEventListener("keydown", keydown, false)
 		document.addEventListener("keyup", keyup, false)
 		document.addEventListener("keydown", function(){
-			socket.emit('keys', up, left, right, down)
+			socket.emit('keys', up, left, right, down, a, s)
 		}, false)
 		document.addEventListener("keyup", function(){
-			socket.emit('keys', up, left, right, down)
+			socket.emit('keys', up, left, right, down, a, s)
 		}, false)
 		////////////////////////////////////////////////////	
 			
